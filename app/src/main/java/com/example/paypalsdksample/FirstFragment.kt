@@ -20,29 +20,25 @@ class FirstFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    // Non UI setup
+    // Perform non-UI setup
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Get Access token
-        Fuel.post("http://192.168.0.245:8080/access_tokens")
-            .response { request, response, result ->
-                println("**********" + request)
-                println("**********" + response)
-                val (bytes, error) = result
-                if (bytes != null) {
-                    println("++++++++++")
-                    println("[response bytes] ${String(bytes)}")
-                }
-            }
     }
 
+    // Assign & declare view variables
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+
+        // Get Access token
+        binding.textviewFirst.text = "Fetching Access Token ..."
+        Networking.fetchAccessToken { value ->
+            binding.textviewFirst.text = value
+            println(value)
+        }
+
         return binding.root
     }
 
