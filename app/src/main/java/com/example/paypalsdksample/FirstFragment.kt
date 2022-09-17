@@ -42,10 +42,15 @@ class FirstFragment : Fragment(), ApproveOrderListener {
 
         // Get Access token
         binding.textviewFirst.text = "Fetching Access Token ..."
-        Networking.fetchAccessToken { value ->
-            binding.textviewFirst.text = value
-            println(value)
+        Networking.fetchAccessToken { accesToken ->
+            binding.textviewFirst.text = "AccessToken: " + accesToken
+            println(accesToken)
 
+            binding.textviewFirst.text = "Fetching OrderID ..."
+            Networking.fetchOrderID(createOrder()) { orderID ->
+                binding.textviewFirst.text = "OrderID: " + orderID
+                println(orderID)
+            }
             configurePayPalSDK()
         }
 
@@ -69,6 +74,16 @@ class FirstFragment : Fragment(), ApproveOrderListener {
         val config = CoreConfig(accessToken, environment = Environment.SANDBOX)
         val cardClient = CardClient(this.requireActivity(), config)
         cardClient.approveOrderListener = this
+    }
+
+    fun createOrder(): OrderRequest {
+        val amount = Amount("USD", "10.00")
+        val applicationContext = ApplicationContext("https://example.com/returnUrl", "https://example.com/returnUrl")
+        return OrderRequest(
+            "AUTHORIZE",
+            arrayOf(PurchaseUnit(amount)),
+            applicationContext
+        )
     }
 
     // IMPLEMENT - ApproveOrderListener Interface

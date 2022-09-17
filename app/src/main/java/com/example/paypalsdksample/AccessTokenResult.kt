@@ -1,5 +1,5 @@
 package com.example.paypalsdksample
 
-data class AccessToken(
+data class AccessTokenResult(
     val access_token: String
  )
