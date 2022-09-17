@@ -31,6 +31,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
 
     var accessToken: String? = null
     var orderID: String? = null
+    var coreConfig: CoreConfig? = null
+    var cardClient: CardClient? = null
 
     // Perform non-UI setup
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +56,7 @@ class FirstFragment : Fragment(), ApproveOrderListener {
             Networking.fetchOrderID(createOrder()) { orderID ->
                 binding.textviewFirst.text = "OrderID: " + orderID
                 this.orderID = orderID
+                setupPayPalSDK()
             }
         }
 
@@ -64,34 +67,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonFirst.setOnClickListener {
-            // Perform Card checkout
-            val card = Card(
-                number = "4005519200000004",
-                expirationMonth = "01",
-                expirationYear = "2025",
-                securityCode = "123",
-                billingAddress = Address(
-                    streetAddress = "123 Main St.",
-                    extendedAddress = "Apt. 1A",
-                    locality = "city",
-                    region = "IL",
-                    postalCode = "12345",
-                    countryCode = "US"
-                )
-            )
-
-            val cardRequest = CardRequest(orderID!!, card)
-
-            val config = CoreConfig(
-                "AUiHPkr1LO7TzZH0Q5_aE8aGNmTiXZh6kKErYFrtXNYSDv13FrN2NElXabVV4fNrZol7LAaVb1gJj9lr",
-                accessToken,
-                environment = Environment.SANDBOX
-            )
-            val cardClient = CardClient(this.requireActivity(), config)
-            cardClient.approveOrderListener = this
-
             binding.textviewFirst.text = "Approving order ..."
-            cardClient.approveOrder(this.requireActivity(), cardRequest)
+            cardClient!!.approveOrder(this.requireActivity(), createCardRequest())
         }
     }
 
@@ -108,6 +85,36 @@ class FirstFragment : Fragment(), ApproveOrderListener {
             arrayOf(PurchaseUnit(amount)),
             applicationContext
         )
+    }
+
+    fun setupPayPalSDK() {
+        coreConfig = CoreConfig(
+            "AUiHPkr1LO7TzZH0Q5_aE8aGNmTiXZh6kKErYFrtXNYSDv13FrN2NElXabVV4fNrZol7LAaVb1gJj9lr",
+            accessToken,
+            environment = Environment.SANDBOX
+        )
+        cardClient = CardClient(this.requireActivity(), coreConfig!!)
+        cardClient!!.approveOrderListener = this
+    }
+
+    fun createCardRequest(): CardRequest {
+        // Perform Card checkout
+        val card = Card(
+            number = "4005519200000004",
+            expirationMonth = "01",
+            expirationYear = "2025",
+            securityCode = "123",
+            billingAddress = Address(
+                streetAddress = "123 Main St.",
+                extendedAddress = "Apt. 1A",
+                locality = "city",
+                region = "IL",
+                postalCode = "12345",
+                countryCode = "US"
+            )
+        )
+
+        return CardRequest(orderID!!, card)
     }
 
     // IMPLEMENT - ApproveOrderListener Interface
