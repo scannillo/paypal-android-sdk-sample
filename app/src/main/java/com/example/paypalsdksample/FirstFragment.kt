@@ -82,10 +82,15 @@ class FirstFragment : Fragment(), ApproveOrderListener {
 
             val cardRequest = CardRequest(orderID!!, card)
 
-            val config = CoreConfig(accessToken, environment = Environment.SANDBOX)
+            val config = CoreConfig(
+                "AUiHPkr1LO7TzZH0Q5_aE8aGNmTiXZh6kKErYFrtXNYSDv13FrN2NElXabVV4fNrZol7LAaVb1gJj9lr",
+                accessToken,
+                environment = Environment.SANDBOX
+            )
             val cardClient = CardClient(this.requireActivity(), config)
             cardClient.approveOrderListener = this
 
+            binding.textviewFirst.text = "Approving order ..."
             cardClient.approveOrder(this.requireActivity(), cardRequest)
         }
     }
@@ -112,11 +117,11 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     }
 
     override fun onApproveOrderFailure(error: PayPalSDKError) {
-        println(error)
-        println("onApproveOrderFailure")
+        println("onApproveOrderFailure" + error)
     }
 
     override fun onApproveOrderSuccess(result: CardResult) {
+        binding.textviewFirst.text = result.orderID + ": " + result.status.toString()
         println("onApproveOrderSuccess")
     }
 
