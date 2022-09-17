@@ -9,8 +9,11 @@ import androidx.navigation.fragment.findNavController
 import com.example.paypalsdksample.databinding.FragmentFirstBinding
 import com.github.kittinunf.fuel.Fuel
 import com.paypal.android.card.ApproveOrderListener
+import com.paypal.android.card.Card
 import com.paypal.android.card.CardClient
+import com.paypal.android.card.CardRequest
 import com.paypal.android.card.model.CardResult
+import com.paypal.android.core.Address
 import com.paypal.android.core.CoreConfig
 import com.paypal.android.core.Environment
 import com.paypal.android.core.PayPalSDKError
@@ -26,7 +29,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    val accessToken: String? = null
+    var accessToken: String? = null
+    var orderID: String? = null
 
     // Perform non-UI setup
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,16 +46,15 @@ class FirstFragment : Fragment(), ApproveOrderListener {
 
         // Get Access token
         binding.textviewFirst.text = "Fetching Access Token ..."
-        Networking.fetchAccessToken { accesToken ->
-            binding.textviewFirst.text = "AccessToken: " + accesToken
-            println(accesToken)
+        Networking.fetchAccessToken { accessToken ->
+            binding.textviewFirst.text = "AccessToken: " + accessToken
+            this.accessToken = accessToken
 
             binding.textviewFirst.text = "Fetching OrderID ..."
             Networking.fetchOrderID(createOrder()) { orderID ->
                 binding.textviewFirst.text = "OrderID: " + orderID
-                println(orderID)
+                this.orderID = orderID
             }
-            configurePayPalSDK()
         }
 
         return binding.root
@@ -61,19 +64,35 @@ class FirstFragment : Fragment(), ApproveOrderListener {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonFirst.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+            // Perform Card checkout
+            val card = Card(
+                number = "4005519200000004",
+                expirationMonth = "01",
+                expirationYear = "2025",
+                securityCode = "123",
+                billingAddress = Address(
+                    streetAddress = "123 Main St.",
+                    extendedAddress = "Apt. 1A",
+                    locality = "city",
+                    region = "IL",
+                    postalCode = "12345",
+                    countryCode = "US"
+                )
+            )
+
+            val cardRequest = CardRequest(orderID!!, card)
+
+            val config = CoreConfig(accessToken, environment = Environment.SANDBOX)
+            val cardClient = CardClient(this.requireActivity(), config)
+            cardClient.approveOrderListener = this
+
+            cardClient.approveOrder(this.requireActivity(), cardRequest)
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    fun configurePayPalSDK() {
-        val config = CoreConfig(accessToken, environment = Environment.SANDBOX)
-        val cardClient = CardClient(this.requireActivity(), config)
-        cardClient.approveOrderListener = this
     }
 
     fun createOrder(): OrderRequest {
@@ -89,22 +108,23 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     // IMPLEMENT - ApproveOrderListener Interface
 
     override fun onApproveOrderCanceled() {
-        TODO("Not yet implemented")
+        println("onApproveOrderCanceled")
     }
 
     override fun onApproveOrderFailure(error: PayPalSDKError) {
-        TODO("Not yet implemented")
+        println(error)
+        println("onApproveOrderFailure")
     }
 
     override fun onApproveOrderSuccess(result: CardResult) {
-        TODO("Not yet implemented")
+        println("onApproveOrderSuccess")
     }
 
     override fun onApproveOrderThreeDSecureDidFinish() {
-        TODO("Not yet implemented")
+        println("onApproveOrderThreeDSecureDidFinish")
     }
 
     override fun onApproveOrderThreeDSecureWillLaunch() {
-        TODO("Not yet implemented")
+        println("onApproveOrderThreeDSecureWillLaunch")
     }
 }
