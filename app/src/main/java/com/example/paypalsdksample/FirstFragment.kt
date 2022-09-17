@@ -13,6 +13,8 @@ import com.paypal.android.card.Card
 import com.paypal.android.card.CardClient
 import com.paypal.android.card.CardRequest
 import com.paypal.android.card.model.CardResult
+import com.paypal.android.card.threedsecure.SCA
+import com.paypal.android.card.threedsecure.ThreeDSecureRequest
 import com.paypal.android.core.Address
 import com.paypal.android.core.CoreConfig
 import com.paypal.android.core.Environment
@@ -79,7 +81,7 @@ class FirstFragment : Fragment(), ApproveOrderListener {
 
     fun createOrder(): OrderRequest {
         val amount = Amount("USD", "10.00")
-        val applicationContext = ApplicationContext("https://example.com/returnUrl", "https://example.com/returnUrl")
+        val applicationContext = ApplicationContext("com.example.paypalsdksample://return_url", "com.example.paypalsdksample://cancel_url")
         return OrderRequest(
             "AUTHORIZE",
             arrayOf(PurchaseUnit(amount)),
@@ -100,7 +102,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     fun createCardRequest(): CardRequest {
         // Perform Card checkout
         val card = Card(
-            number = "4005519200000004",
+            number = "5329879786234393", // 3DS Challenge
+            // number = "4005519200000004", // non 3DS-success
             expirationMonth = "01",
             expirationYear = "2025",
             securityCode = "123",
@@ -114,16 +117,26 @@ class FirstFragment : Fragment(), ApproveOrderListener {
             )
         )
 
-        return CardRequest(orderID!!, card)
+        val cardRequest = CardRequest(orderID!!, card)
+
+        cardRequest.threeDSecureRequest = ThreeDSecureRequest(
+            sca = SCA.SCA_ALWAYS,
+            returnUrl = "com.example.paypalsdksample://return_url",
+            cancelUrl = "com.example.paypalsdksample://cancel_url"
+        )
+
+        return cardRequest
     }
 
     // IMPLEMENT - ApproveOrderListener Interface
 
     override fun onApproveOrderCanceled() {
+        binding.textviewFirst.text = "onApproveOrderCanceled"
         println("onApproveOrderCanceled")
     }
 
     override fun onApproveOrderFailure(error: PayPalSDKError) {
+        binding.textviewFirst.text = "onApproveOrderFailure"
         println("onApproveOrderFailure" + error)
     }
 
@@ -133,10 +146,12 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     }
 
     override fun onApproveOrderThreeDSecureDidFinish() {
+        binding.textviewFirst.text = "onApproveOrderThreeDSecureDidFinish"
         println("onApproveOrderThreeDSecureDidFinish")
     }
 
     override fun onApproveOrderThreeDSecureWillLaunch() {
+        binding.textviewFirst.text = "ThreeDSecureWillLaunch ..."
         println("onApproveOrderThreeDSecureWillLaunch")
     }
 }
