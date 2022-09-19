@@ -41,4 +41,19 @@ object Networking {
                 }
             }
     }
+
+    fun postCompleteOrder(orderID: String, intent: String, callback: (String) -> Unit) {
+        Fuel.post("http://10.0.2.2:8080/orders" + orderID + "/" + intent)
+            .header(Headers.CONTENT_TYPE, "application/json")
+            .response { request, response, result ->
+                val (bytes, error) = result
+                if (bytes != null) {
+                    var gson = Gson()
+
+                    var jsonString = String(bytes)
+                    var orderAuthorizationModel = gson.fromJson(jsonString, OrderAuthorizationResult::class.java)
+                    callback(orderAuthorizationModel.id)
+                }
+            }
+    }
 }

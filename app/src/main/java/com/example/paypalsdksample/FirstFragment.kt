@@ -102,8 +102,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     fun createCardRequest(): CardRequest {
         // Perform Card checkout
         val card = Card(
-            number = "5329879786234393", // 3DS Challenge
-            // number = "4005519200000004", // non 3DS-success
+//            number = "5329879786234393", // 3DS Challenge
+            number = "4005519200000004", // non 3DS-success
             expirationMonth = "01",
             expirationYear = "2025",
             securityCode = "123",
@@ -141,8 +141,12 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     }
 
     override fun onApproveOrderSuccess(result: CardResult) {
-        binding.textviewFirst.text = result.orderID + ": " + result.status.toString()
+        binding.textviewFirst.text = "Completing orderID:" + result.orderID + "via AUTHORIZE ..."
         println("onApproveOrderSuccess")
+
+        Networking.postCompleteOrder(result.orderID, "AUTHORIZE") { orderID ->
+            binding.textviewFirst.text = "Authorize complete: " + orderID + "!"
+        }
     }
 
     override fun onApproveOrderThreeDSecureDidFinish() {
