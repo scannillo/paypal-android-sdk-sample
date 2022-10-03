@@ -102,8 +102,8 @@ class FirstFragment : Fragment(), ApproveOrderListener {
     fun createCardRequest(): CardRequest {
         // Perform Card checkout
         val card = Card(
-//            number = "5329879786234393", // 3DS Challenge
-            number = "4005519200000004", // non 3DS-success
+            number = "5329879786234393", // 3DS Challenge
+//            number = "4005519200000004", // non 3DS-success
             expirationMonth = "01",
             expirationYear = "2025",
             securityCode = "123",
